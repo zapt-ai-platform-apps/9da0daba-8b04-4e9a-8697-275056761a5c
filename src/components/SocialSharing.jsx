@@ -1,5 +1,6 @@
-import { createSignal, onMount } from 'solid-js';
+import { createSignal, onMount, Show, For } from 'solid-js';
 import { createEvent } from '../supabaseClient';
+import * as Sentry from "@sentry/browser";
 
 function SocialSharing() {
   const [sharedWorkouts, setSharedWorkouts] = createSignal([]);
@@ -11,6 +12,7 @@ function SocialSharing() {
       const result = await createEvent('fetch_shared_workouts', {});
       setSharedWorkouts(result.workouts || []);
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error fetching shared workouts:', error);
     } finally {
       setLoading(false);
@@ -26,6 +28,7 @@ function SocialSharing() {
       await createEvent('like_workout', { workoutId });
       // Optionally update the local state to reflect the like
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error liking workout:', error);
     }
   };

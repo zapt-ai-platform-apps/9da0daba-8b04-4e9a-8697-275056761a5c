@@ -1,5 +1,6 @@
-import { createSignal, onMount } from 'solid-js';
+import { createSignal, onMount, Show, For } from 'solid-js';
 import { createEvent } from '../supabaseClient';
+import * as Sentry from "@sentry/browser";
 
 function CustomWorkoutBuilder() {
   const [availableExercises, setAvailableExercises] = createSignal([]);
@@ -13,6 +14,7 @@ function CustomWorkoutBuilder() {
       const result = await createEvent('fetch_exercises', {});
       setAvailableExercises(result.exercises || []);
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error fetching exercises:', error);
     } finally {
       setLoading(false);
@@ -40,6 +42,7 @@ function CustomWorkoutBuilder() {
       setCustomWorkout([]);
       alert('Custom workout saved successfully!');
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error saving custom workout:', error);
     } finally {
       setLoading(false);
@@ -85,7 +88,9 @@ function CustomWorkoutBuilder() {
             </For>
           </ul>
           <button
-            class={`mt-4 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${loading() || customWorkout().length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            class={`mt-4 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${
+              loading() || customWorkout().length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             onClick={saveCustomWorkout}
             disabled={loading() || customWorkout().length === 0}
           >

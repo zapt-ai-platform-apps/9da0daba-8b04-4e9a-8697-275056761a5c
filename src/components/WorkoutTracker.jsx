@@ -1,7 +1,18 @@
 import { createSignal, onMount, Show } from 'solid-js';
 import { supabase } from '../supabaseClient';
-import { Chart, Title, Tooltip, Legend, Colors, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js';
+import {
+  Chart,
+  Title,
+  Tooltip,
+  Legend,
+  Colors,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+} from 'chart.js';
 import { Line } from 'solid-chartjs';
+import * as Sentry from "@sentry/browser";
 
 Chart.register(Title, Tooltip, Legend, Colors, LineElement, PointElement, CategoryScale, LinearScale);
 
@@ -17,8 +28,8 @@ function WorkoutTracker() {
         data: [],
         borderColor: 'rgba(99, 102, 241, 1)', // Indigo-500
         backgroundColor: 'rgba(99, 102, 241, 0.2)',
-      }
-    ]
+      },
+    ],
   });
 
   const fetchWorkouts = async () => {
@@ -38,6 +49,7 @@ function WorkoutTracker() {
         console.error('Error fetching workouts:', response.statusText);
       }
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error fetching workouts:', error);
     } finally {
       setLoading(false);
@@ -66,6 +78,7 @@ function WorkoutTracker() {
         console.error('Error saving workout');
       }
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error saving workout:', error);
     } finally {
       setLoading(false);
@@ -74,7 +87,7 @@ function WorkoutTracker() {
 
   const updateChartData = (workoutsData) => {
     const labels = workoutsData.map((w) => new Date(w.date).toLocaleDateString());
-    const data = workoutsData.map(w => Number(w.weight) * Number(w.reps) * Number(w.sets));
+    const data = workoutsData.map((w) => Number(w.weight) * Number(w.reps) * Number(w.sets));
     setChartData({
       labels,
       datasets: [
@@ -83,8 +96,8 @@ function WorkoutTracker() {
           data,
           borderColor: 'rgba(99, 102, 241, 1)',
           backgroundColor: 'rgba(99, 102, 241, 0.2)',
-        }
-      ]
+        },
+      ],
     });
   };
 
@@ -134,7 +147,9 @@ function WorkoutTracker() {
           </div>
           <button
             type="submit"
-            class={`mt-4 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${loading() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            class={`mt-4 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${
+              loading() ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             disabled={loading()}
           >
             {loading() ? 'Saving...' : 'Save Workout'}

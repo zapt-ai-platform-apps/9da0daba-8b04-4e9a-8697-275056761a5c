@@ -83,6 +83,10 @@ The Fitness Web App is a comprehensive platform designed to help users manage th
 - **Nutrition API**: Provides nutritional information for meals. (Requires API key)
 - **Exercise API**: Supplies exercise details and recommendations. (Requires API key)
 
+## Error Handling
+
+- **Sentry Integration**: All errors on both the front-end and back-end are captured and logged using Sentry for effective monitoring and debugging.
+
 ---
 
-**Note:** API keys for external services should be configured in the `.env` file. Please ensure to add `NEON_DB_URL` and other necessary environment variables.
+**Note:** API keys for external services should be configured in the `.env` file. Please ensure to add `NEON_DB_URL`, `VITE_PUBLIC_SENTRY_DSN`, `VITE_PUBLIC_APP_ENV`, and other necessary environment variables.

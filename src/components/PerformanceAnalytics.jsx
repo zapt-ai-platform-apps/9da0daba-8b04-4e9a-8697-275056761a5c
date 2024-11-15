@@ -1,4 +1,4 @@
-import { createSignal, onMount } from 'solid-js';
+import { createSignal, onMount, Show } from 'solid-js';
 import { createEvent } from '../supabaseClient';
 import {
   Chart,
@@ -12,6 +12,7 @@ import {
   LinearScale,
 } from 'chart.js';
 import { Line } from 'solid-chartjs';
+import * as Sentry from "@sentry/browser";
 
 Chart.register(
   Title,
@@ -46,6 +47,7 @@ function PerformanceAnalytics() {
       setAnalyticsData(result.analytics || []);
       updateChartData(result.analytics || []);
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error fetching analytics data:', error);
     } finally {
       setLoading(false);

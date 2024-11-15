@@ -1,5 +1,6 @@
 import { createSignal, onMount, Show, For } from 'solid-js';
 import { supabase } from '../supabaseClient';
+import * as Sentry from "@sentry/browser";
 
 function MealPlanner() {
   const [meals, setMeals] = createSignal([]);
@@ -22,6 +23,7 @@ function MealPlanner() {
         console.error('Error fetching meals:', response.statusText);
       }
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error fetching meals:', error);
     } finally {
       setLoading(false);
@@ -49,6 +51,7 @@ function MealPlanner() {
         console.error('Error saving meal');
       }
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error saving meal:', error);
     } finally {
       setLoading(false);
@@ -85,7 +88,9 @@ function MealPlanner() {
           </div>
           <button
             type="submit"
-            class={`mt-4 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${loading() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            class={`mt-4 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${
+              loading() ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             disabled={loading()}
           >
             {loading() ? 'Saving...' : 'Save Meal'}
