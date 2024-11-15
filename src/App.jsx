@@ -1,4 +1,4 @@
-import { createSignal, onMount, ErrorBoundary } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import { supabase } from './supabaseClient';
 import { Routes, Route, Navigate } from '@solidjs/router';
 import { Auth } from '@supabase/auth-ui-solid';
@@ -17,9 +17,17 @@ function App() {
   const [user, setUser] = createSignal(null);
 
   const checkUserSignedIn = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUser(user);
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        throw error;
+      }
+      if (user) {
+        setUser(user);
+      }
+    } catch (error) {
+      Sentry.captureException(error);
+      console.error('Error checking user signed in:', error);
     }
   };
 
@@ -27,10 +35,15 @@ function App() {
     checkUserSignedIn();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        setUser(null);
+      try {
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        Sentry.captureException(error);
+        console.error('Error in auth state change:', error);
       }
     });
 
@@ -40,8 +53,13 @@ function App() {
   });
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      Sentry.captureException(error);
+      console.error('Error signing out:', error);
+    }
   };
 
   return (
@@ -67,22 +85,15 @@ function App() {
             </div>
           </nav>
 
-          <ErrorBoundary
-            fallback={(error) => {
-              Sentry.captureException(error);
-              return <div>An error occurred: {error.message}</div>;
-            }}
-          >
-            <Routes>
-              <Route path="/" component={Dashboard} />
-              <Route path="/workout-tracker" component={WorkoutTracker} />
-              <Route path="/meal-planner" component={MealPlanner} />
-              <Route path="/custom-workout-builder" component={CustomWorkoutBuilder} />
-              <Route path="/social-sharing" component={SocialSharing} />
-              <Route path="/performance-analytics" component={PerformanceAnalytics} />
-              <Route path="*" element={<Navigate href="/" />} />
-            </Routes>
-          </ErrorBoundary>
+          <Routes>
+            <Route path="/" component={Dashboard} />
+            <Route path="/workout-tracker" component={WorkoutTracker} />
+            <Route path="/meal-planner" component={MealPlanner} />
+            <Route path="/custom-workout-builder" component={CustomWorkoutBuilder} />
+            <Route path="/social-sharing" component={SocialSharing} />
+            <Route path="/performance-analytics" component={PerformanceAnalytics} />
+            <Route path="*" element={<Navigate href="/" />} />
+          </Routes>
         </>
       ) : (
         <div class="flex items-center justify-center h-full">
