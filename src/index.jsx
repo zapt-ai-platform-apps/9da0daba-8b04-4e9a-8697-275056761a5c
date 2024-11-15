@@ -3,6 +3,7 @@ import { Router } from '@solidjs/router';
 import App from './App';
 import './index.css';
 import * as Sentry from "@sentry/browser";
+import { ErrorBoundary } from 'solid-js';
 
 Sentry.init({
   dsn: import.meta.env.VITE_PUBLIC_SENTRY_DSN,
@@ -30,6 +31,13 @@ document.querySelector('head').appendChild(script);
 
 render(() => (
   <Router>
-    <App />
+    <ErrorBoundary
+      fallback={(error) => {
+        Sentry.captureException(error);
+        return <div>An error occurred: {error.message}</div>;
+      }}
+    >
+      <App />
+    </ErrorBoundary>
   </Router>
 ), document.getElementById('root'));
