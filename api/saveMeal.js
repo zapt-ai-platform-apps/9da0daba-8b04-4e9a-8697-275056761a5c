@@ -1,21 +1,23 @@
 import { meals } from '../drizzle/schema.js';
-import { authenticateUser, Sentry } from "./_apiUtils.js";
+import { authenticateUser, sentryWrapper } from "./_apiUtils.js";
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-export default async function handler(req, res) {
-  try {
-    if (req.method !== 'POST') {
-      res.setHeader('Allow', ['POST']);
-      return res.status(405).end(`Method ${req.method} Not Allowed`);
-    }
+const handler = async (req, res) => {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return;
+  }
 
+  try {
     const user = await authenticateUser(req);
 
     const { mealName, calories } = req.body;
 
     if (!mealName || !calories) {
-      return res.status(400).json({ error: 'Meal name and calories are required' });
+      res.status(400).json({ error: 'Meal name and calories are required' });
+      return;
     }
 
     const sql = neon(process.env.NEON_DB_URL);
@@ -30,7 +32,9 @@ export default async function handler(req, res) {
     res.status(201).json(result);
   } catch (error) {
     console.error('Error saving meal:', error);
-    Sentry.captureException(error);
     res.status(500).json({ error: 'Error saving meal' });
+    throw error; // Rethrow to be caught by sentryWrapper
   }
-}
+};
+
+export default sentryWrapper(handler);

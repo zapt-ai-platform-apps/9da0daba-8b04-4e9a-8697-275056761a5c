@@ -8,12 +8,11 @@ import { ErrorBoundary } from 'solid-js';
 Sentry.init({
   dsn: import.meta.env.VITE_PUBLIC_SENTRY_DSN,
   environment: import.meta.env.VITE_PUBLIC_APP_ENV,
-  initialScope: {
-    tags: {
-      type: 'frontend',
-      projectId: import.meta.env.VITE_PUBLIC_APP_ID
-    }
-  }
+});
+
+Sentry.configureScope(scope => {
+  scope.setTag("type", "frontend");
+  scope.setTag("projectId", import.meta.env.VITE_PUBLIC_APP_ID);
 });
 
 // Add PWA support to the app
@@ -33,7 +32,7 @@ render(() => (
     <ErrorBoundary
       fallback={(error) => {
         Sentry.captureException(error);
-        return <div class="text-red-500">An error occurred: {error.message}</div>;
+        return <div>An error occurred: {error.message}</div>;
       }}
     >
       <App />
