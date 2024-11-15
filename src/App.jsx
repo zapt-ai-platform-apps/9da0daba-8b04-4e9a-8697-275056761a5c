@@ -18,12 +18,14 @@ function App() {
 
   const checkUserSignedIn = async () => {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { session }, error } = await supabase.auth.getSession();
       if (error) {
         throw error;
       }
-      if (user) {
-        setUser(user);
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
       }
     } catch (error) {
       Sentry.captureException(error);
@@ -34,7 +36,7 @@ function App() {
   onMount(() => {
     checkUserSignedIn();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       try {
         if (session?.user) {
           setUser(session.user);
@@ -48,7 +50,7 @@ function App() {
     });
 
     return () => {
-      authListener?.unsubscribe();
+      subscription?.unsubscribe();
     };
   });
 
