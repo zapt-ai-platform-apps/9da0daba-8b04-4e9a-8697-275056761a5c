@@ -1,16 +1,15 @@
 import { meals } from '../drizzle/schema.js';
-import { authenticateUser } from "./_apiUtils.js";
+import { authenticateUser, Sentry } from "./_apiUtils.js";
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { Sentry } from './sentry.js';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-
   try {
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', ['POST']);
+      return res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
+
     const user = await authenticateUser(req);
 
     const { mealName, calories } = req.body;

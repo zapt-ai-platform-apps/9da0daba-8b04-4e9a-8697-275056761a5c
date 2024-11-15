@@ -8,7 +8,6 @@ import { ErrorBoundary } from 'solid-js';
 Sentry.init({
   dsn: import.meta.env.VITE_PUBLIC_SENTRY_DSN,
   environment: import.meta.env.VITE_PUBLIC_APP_ENV,
-  integrations: [Sentry.browserTracingIntegration()],
   initialScope: {
     tags: {
       type: 'frontend',
@@ -34,7 +33,7 @@ render(() => (
     <ErrorBoundary
       fallback={(error) => {
         Sentry.captureException(error);
-        return <div>An error occurred: {error.message}</div>;
+        return <div class="text-red-500">An error occurred: {error.message}</div>;
       }}
     >
       <App />
