@@ -1,14 +1,14 @@
 import { meals } from '../drizzle/schema.js';
-import { authenticateUser, sentryWrapper } from "./_apiUtils.js";
+import { authenticateUser } from "./_apiUtils.js";
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { eq } from 'drizzle-orm';
+import { Sentry } from './sentry.js';
 
 const handler = async (req, res) => {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
-    return;
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
   try {
@@ -22,13 +22,9 @@ const handler = async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     console.error('Error fetching meals:', error);
-    if (error.message.includes('Authorization') || error.message.includes('token')) {
-      res.status(401).json({ error: 'Authentication failed' });
-    } else {
-      res.status(500).json({ error: 'Error fetching meals' });
-    }
-    throw error; // Rethrow to be caught by sentryWrapper
+    Sentry.captureException(error);
+    res.status(500).json({ error: 'Error fetching meals' });
   }
 };
 
-export default sentryWrapper(handler);
+export default Sentry.withSentry(handler);

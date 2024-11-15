@@ -1,8 +1,9 @@
-import { createSignal, onMount } from 'solid-js';
+import { createSignal, onMount, ErrorBoundary } from 'solid-js';
 import { supabase } from './supabaseClient';
 import { Routes, Route, Navigate } from '@solidjs/router';
 import { Auth } from '@supabase/auth-ui-solid';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
+import * as Sentry from "@sentry/browser";
 
 // Import components
 import Dashboard from './components/Dashboard';
@@ -66,15 +67,22 @@ function App() {
             </div>
           </nav>
 
-          <Routes>
-            <Route path="/" component={Dashboard} />
-            <Route path="/workout-tracker" component={WorkoutTracker} />
-            <Route path="/meal-planner" component={MealPlanner} />
-            <Route path="/custom-workout-builder" component={CustomWorkoutBuilder} />
-            <Route path="/social-sharing" component={SocialSharing} />
-            <Route path="/performance-analytics" component={PerformanceAnalytics} />
-            <Route path="*" element={<Navigate href="/" />} />
-          </Routes>
+          <ErrorBoundary
+            fallback={(error) => {
+              Sentry.captureException(error);
+              return <div>An error occurred: {error.message}</div>;
+            }}
+          >
+            <Routes>
+              <Route path="/" component={Dashboard} />
+              <Route path="/workout-tracker" component={WorkoutTracker} />
+              <Route path="/meal-planner" component={MealPlanner} />
+              <Route path="/custom-workout-builder" component={CustomWorkoutBuilder} />
+              <Route path="/social-sharing" component={SocialSharing} />
+              <Route path="/performance-analytics" component={PerformanceAnalytics} />
+              <Route path="*" element={<Navigate href="/" />} />
+            </Routes>
+          </ErrorBoundary>
         </>
       ) : (
         <div class="flex items-center justify-center h-full">

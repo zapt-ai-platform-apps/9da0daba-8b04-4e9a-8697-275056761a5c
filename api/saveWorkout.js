@@ -1,13 +1,13 @@
 import { workouts } from '../drizzle/schema.js';
-import { authenticateUser, sentryWrapper } from "./_apiUtils.js";
+import { authenticateUser } from "./_apiUtils.js";
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { Sentry } from './sentry.js';
 
 const handler = async (req, res) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
-    return;
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
   try {
@@ -16,8 +16,7 @@ const handler = async (req, res) => {
     const { exercise, sets, reps, weight } = req.body;
 
     if (!exercise || !sets || !reps || !weight) {
-      res.status(400).json({ error: 'All fields are required' });
-      return;
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
     const sql = neon(process.env.NEON_DB_URL);
@@ -34,9 +33,9 @@ const handler = async (req, res) => {
     res.status(201).json(result);
   } catch (error) {
     console.error('Error saving workout:', error);
+    Sentry.captureException(error);
     res.status(500).json({ error: 'Error saving workout' });
-    throw error; // Rethrow to be caught by sentryWrapper
   }
 };
 
-export default sentryWrapper(handler);
+export default Sentry.withSentry(handler);
